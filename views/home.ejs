@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title></title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+   
+    <%- include('partials/header.ejs') -%>
+
+    <form action="/Analyze" method="post" enctype="multipart/form-data">
+        <input type="file" name="textFile" accept=".txt" required>
+        <button class="button" ctype="submit">Analyze</button>
+    </form>
+
+    <div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Total Letters</th>
+                    <th>Capital Letters</th>
+                    <th>Small Letters</th>
+                    <th>Vowels</th>
+                    <th>Total Spaces</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><%= value1 %></td>
+                    <td><%= value2 %></td>
+                    <td><%= value3 %></td>
+                    <td><%= value4 %></td>
+                    <td><%= value5 %></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <%- include('partials/footer.ejs') -%>
+</body>
+</html>
