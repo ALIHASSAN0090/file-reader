@@ -1,59 +1,43 @@
+// app.js
 const express = require("express");
 const path = require("path");
 const bodyParser = require("body-parser");
-const fs = require('fs');
 const multer = require("multer");
+const fs = require('fs');
 
 const app = express();
 
 app.set('view engine', 'ejs');
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static("public"));
-
-// Set up multer for file uploads
+app.use(express.static(path.join(__dirname, "public")));
 const upload = multer({ dest: 'uploads/' });
+app.use(upload.single("textFile"));
 
-app.get('/', function(req, res) {
-    res.render("home", {
-        value1: '0',
-        value2: '0',
-        value3: '0',
-        value4: '0',
-        value5: '0'
-    });
+const PORT = 3000;
+app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
 });
 
-app.post("/Analyze", upload.single('textFile'), function(req, res) {
-    const filePath = req.file.path;
-
-    analyzeFile(filePath, (err, result) => {
+// Analyze file service function
+function analyzeFile(filePath, word, callback) {
+    fs.readFile(filePath, 'utf8', (err, data) => {
         if (err) {
-            console.error(err);
-            return res.send('Error analyzing file.');
+            console.error("Error in File Reading");
+            return callback(err);
         }
-
-        res.render('home', {
-            value1: result.totalLetters,
-            value2: result.capitalLetters,
-            value3: result.smallLetters,
-            value4: result.vowels,
-            value5: result.totalSpaces
-        });
-
-        // Clean up the uploaded file after processing
-        fs.unlink(filePath, (err) => {
-            if (err) console.error("Error deleting file:", err);
-        });
+        const result = analyzeText(data, word);
+        callback(null, result);
     });
-});
+}
 
-function analyzeText(text) {
+function analyzeText(text, word) {
     const result = {
         vowels: 0,
         capitalLetters: 0,
         smallLetters: 0,
         totalLetters: 0,
-        totalSpaces: 0
+        totalSpaces: 0,
+        word: 0
     };
 
     const vowels = "AEIOUaeiou";
@@ -72,20 +56,74 @@ function analyzeText(text) {
             result.totalSpaces++;
         }
     }
+
+    const textArray = text.split(" ");
+    textArray.forEach(textItem => {
+        if (textItem.includes(word)) {
+            result.word++;
+        }
+    });
+
     return result;
 }
 
-function analyzeFile(filePath, callback) {
-    fs.readFile(filePath, 'utf8', (err, data) => {
-        if (err) {
-            console.error("Error reading file:", err);
-            return callback(err);
-        }
-        const result = analyzeText(data);
-        callback(null, result);
+// Render home page
+app.get('/', (req, res) => {
+    res.render("home", {
+        value1: '0',
+        value2: '0',
+        value3: '0',
+        value4: '0',
+        value5: '0',
+        value6: '0'
     });
-}
+});
 
-app.listen(3000, function() {
-    console.log("Server running on port 3000");
+// Analyze file and send response
+app.post('/Analyze', (req, res) => {
+    const filePath = req.file.path;
+    const word = req.body.searchWord;
+
+    analyzeFile(filePath, word, (err, result) => {
+        if (err) {
+            console.error("File Analyzing Failed");
+            return res.send('Error analyzing file.');
+        }
+
+        res.render("home", {
+            value1: result.totalLetters,
+            value2: result.capitalLetters,
+            value3: result.smallLetters,
+            value4: result.vowels,
+            value5: result.totalSpaces,
+            value6: result.word
+        });
+
+        fs.unlink(filePath, (err) => {
+            if (err) {
+                console.error("Error in Deleting:", err);
+            }
+        });
+    });
+});
+
+// Analyze file and send JSON response
+app.post('/analyze-json', (req, res) => {
+    const filePath = req.file.path;
+    const word = req.body.searchWord;
+
+    analyzeFile(filePath, word, (err, result) => {
+        if (err) {
+            console.error("File Analyzing Failed");
+            return res.status(500).json({ error: 'Error analyzing file' });
+        }
+
+        res.json(result);
+
+        fs.unlink(filePath, (err) => {
+            if (err) {
+                console.error("Error in Deleting:", err);
+            }
+        });
+    });
 });

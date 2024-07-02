@@ -12,6 +12,7 @@
 
     <form action="/Analyze" method="post" enctype="multipart/form-data">
         <input type="file" name="textFile" accept=".txt" required>
+        <input type="text" name="searchWord" placeholder="Enter the word to search" >
         <button class="button" ctype="submit">Analyze</button>
     </form>
 
@@ -24,6 +25,7 @@
                     <th>Small Letters</th>
                     <th>Vowels</th>
                     <th>Total Spaces</th>
+                    <th>Searched word</th>
                 </tr>
             </thead>
             <tbody>
@@ -33,11 +35,14 @@
                     <td><%= value3 %></td>
                     <td><%= value4 %></td>
                     <td><%= value5 %></td>
+                    <td><%= value6 %></td>
                 </tr>
             </tbody>
         </table>
     </div>
 
+
+    
     <%- include('partials/footer.ejs') -%>
 </body>
 </html>
